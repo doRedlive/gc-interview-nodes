@@ -127,10 +127,7 @@ Instantiate 克隆对象及子层级，创建组件、复制序列化数据，�
 | `fileID`／Local ID | 标识某个资源文件中的具体对象或子资源 | 通常与 GUID 配合定位；不是跨所有文件唯一 |
 | `InstanceID` | 当前会话中已加载 Unity 对象的临时身份 | 不应用作存档或跨运行会话标识 |
 
-序列化引用常由 `GUID + fileID` 表达；不能说 fileID 都“位于同一个 .meta 里”。跨场景持久对象、共享资源不会因一次场景切换就全部消失。对象身份、资源身份和业务实体 ID 应分别设计。
-
-
-InstanceID 不是应用可依赖的 `GUID + fileID` 哈希计算结果；运行时新建的对象也可能没有持久化资源 GUID。不要自行重建这一映射作为引擎保证。
+序列化引用由 `GUID + fileID` 表达；InstanceID 是运行时映射，不应自行重建它与 `GUID + fileID` 的对应关系作为引擎保证；运行时新建的对象没有持久化资源 GUID。对象身份、资源身份和业务实体 ID 应分别设计。
 
 ### 9. Unity 对象的 `== null` 与普通 C# 引用判空有什么区别？
 
@@ -212,10 +209,7 @@ PlayerPrefs.Save(); // 在合适的保存节点调用
 - Trigger 回调：至少一方勾选 `Is Trigger`，且通常至少一方关联 Rigidbody；用于检测重叠，不提供普通碰撞阻挡响应。
 - `isKinematic = true`：由程序或动画控制运动，不受普通力和重力驱动；仍可按碰撞矩阵与其他对象交互，适合移动平台等。
 
-移动运动学刚体时可在固定更新阶段使用合适的刚体移动 API。复合 Collider 的刚体可能在父级，不应只检查碰撞体所在节点。
-
-
-接触过程常对应 `OnCollisionEnter/Stay/Exit`，触发重叠对应 `OnTriggerEnter/Stay/Exit`；对象销毁、失活等情况下不能把 Exit 回调当作唯一清理入口。Trigger 仍参与物理系统的重叠检测，不是被物理系统完全忽略。
+移动运动学刚体时在固定更新阶段使用合适的刚体移动 API。复合 Collider 的刚体可能在父级，不应只检查碰撞体所在节点。接触过程对应 `OnCollisionEnter/Stay/Exit`，触发重叠对应 `OnTriggerEnter/Stay/Exit`；对象销毁、失活等情况下不能把 Exit 回调当作唯一清理入口，显式清理应放在确定的生命周期点。
 
 ### 16. 刚体插值与 CCD 有什么区别？高速子弹穿透如何处理？
 
@@ -1012,12 +1006,7 @@ C# → 托管程序集（IL + 元数据）
 
 IL2CPP 的优势在于 AOT 部署能力、目标平台工具链优化和平台覆盖；代价包括较长的代码处理时间、更复杂的原生调试，以及动态代码生成、反射和裁剪方面的约束。它仍需要 GC、类型、异常与线程等运行时服务，并非“转成 C++ 就没有托管语义”。
 
-跨平台意味着业务代码可以在不同平台复用并生成相应产物，不是同一二进制天然运行在所有设备。原生插件、资源格式、图形 API、输入与文件系统仍有平台差异。
-
-不能保证 IL2CPP 恒定快 1.5～2 倍，也不能仅凭后端名称判断包体、启动时间或所有 C# 特性支持情况。语言版本、API 配置、平台政策和后端能力是不同维度，旧版本平台支持列表应按实际项目重新核对。
-
-
-现代 .NET 本身也支持跨平台，不能沿用“.NET 只能运行于 Windows”的旧结论。通用渲染流水线与坐标变换见 [图形学与3D数学题库](图形学与3D数学题库.md)。
+跨平台意味着业务代码可以在不同平台复用并生成相应产物，原生插件、资源格式、图形 API、输入与文件系统仍有平台差异。性能收益取决于代码模式，以实测为准。现代 .NET 本身也支持跨平台。通用渲染流水线与坐标变换见 [图形学与3D数学题库](图形学与3D数学题库.md)。
 
 ### 80. JIT、AOT 与解释执行有什么区别？为何影响泛型、反射和热更新？
 
@@ -1088,36 +1077,4 @@ Android 常通过 AndroidJavaObject／AndroidJavaClass 与 Java／Kotlin 桥接�
 
 现代 Unity 项目主要使用 C#；旧版 UnityScript、Boo 属于历史支持。Cocos 不同产品线可使用 TypeScript／JavaScript、C++ 等语言，比较时先明确产品和版本。
 
-常见比较维度是 2D／3D 需求、编辑器与资产流程、平台支持、团队语言经验、运行成本与生态；不能只靠“哪个引擎更快”决定。
-
-## 参考资料
-
-- [Coroutines](https://docs.unity3d.com/6000.0/Documentation/Manual/Coroutines.html)
-- [MonoBehaviour.CancelInvoke](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/MonoBehaviour.CancelInvoke.html)
-- [PrefabVariants](https://docs.unity3d.com/6000.0/Documentation/Manual/PrefabVariants.html)
-- [AssetDatabase.TryGetGUIDAndLocalFileIdentifier](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/AssetDatabase.TryGetGUIDAndLocalFileIdentifier.html)
-- [UnityEngine.Object 官方说明](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Object.html)
-- [collider-types-interaction](https://docs.unity3d.com/6000.0/Documentation/Manual/collider-types-interaction.html)
-- [ContinuousCollisionDetection](https://docs.unity3d.com/6000.0/Documentation/Manual/ContinuousCollisionDetection.html)
-- [UIBasicLayout](https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/UIBasicLayout.html)
-- [unity-ui-optimization-tips](https://unity.com/how-to/unity-ui-optimization-tips)
-- [render-pipelines-overview](https://docs.unity3d.com/6000.0/Documentation/Manual/render-pipelines-overview.html)
-- [optimizing-draw-calls](https://docs.unity3d.com/cn/2023.1/Manual/optimizing-draw-calls.html)
-- [shader-variants](https://docs.unity3d.com/6000.0/Documentation/Manual/shader-variants.html)
-- [shader-loading](https://docs.unity3d.com/6000.0/Documentation/Manual/shader-loading.html)
-- [Renderer-material](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Renderer-material.html)
-- [SRPBatcher](https://docs.unity3d.com/cn/2023.1/Manual/SRPBatcher.html)
-- [shadow-mapping](https://docs.unity3d.com/6000.0/Documentation/Manual/shadow-mapping.html)
-- [class-ScriptableObject](https://docs.unity3d.com/6000.0/Documentation/Manual/class-ScriptableObject.html)
-- [AssetBundles-Dependencies](https://docs.unity3d.com/6000.0/Documentation/Manual/AssetBundles-Dependencies.html)
-- [AssetBundle.Unload](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/AssetBundle.Unload.html)
-- [MemoryManagement](https://docs.unity3d.com/Packages/com.unity.addressables@1.21/manual/MemoryManagement.html)
-- [AddressableAssetsAsyncOperationHandle](https://docs.unity3d.com/Packages/com.unity.addressables@1.21/manual/AddressableAssetsAsyncOperationHandle.html)
-- [运行时资源加载](https://docs.unity3d.com/6000.0/Documentation/Manual/LoadingResourcesatRuntime.html)
-- [Addressables 概览](https://docs.unity3d.com/Packages/com.unity.addressables@1.21/manual/AddressableAssetsOverview.html)
-- [performance-garbage-collector](https://docs.unity3d.com/6000.0/Documentation/Manual/performance-garbage-collector.html)
-- [async-await-support](https://docs.unity3d.com/6000.0/Documentation/Manual/async-await-support.html)
-- [async-awaitable-continuations](https://docs.unity3d.com/cn/6000.0/Manual/async-awaitable-continuations.html)
-- [index](https://docs.unity3d.com/Packages/com.unity.burst@1.8/manual/index.html)
-- [job-system-native-container](https://docs.unity3d.com/6000.0/Documentation/Manual/job-system-native-container.html)
-- [il2cpp-introduction](https://docs.unity3d.com/6000.0/Documentation/Manual/il2cpp-introduction.html)
+常见比较维度是 2D／3D 需求、编辑器与资产流程、平台支持、团队语言经验、运行成本与生态——引擎选型是工程权衡问题，"哪个引擎更快"取决于具体项目类型与实现质量。

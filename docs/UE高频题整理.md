@@ -32,7 +32,7 @@
 | PlayerState | 服务器并复制 | 单个玩家的公开数据：名字、分数、队伍、ping |
 | Pawn／Character | 服务器与相关客户端 | 被控制的实体；Character 额外带胶囊与 CharacterMovementComponent |
 
-记忆主线：规则在 GameMode（服务器），结果状态在 GameState（人人可见），个人输入在 PlayerController（只属于本人），个人公开数据在 PlayerState，身体是 Pawn。 PIE 与单机模式下 GameMode 在客户端也存在一份，此时按 NetMode 判断，不要把"GameMode 客户端一定没有"说死。
+记忆主线：规则在 GameMode（服务器），结果状态在 GameState（人人可见），个人输入在 PlayerController（只属于本人），个人公开数据在 PlayerState，身体是 Pawn。 PIE 与单机模式下 GameMode 在客户端也存在一份，判断运行环境用 NetMode。
 
 ### 2. UPROPERTY 和 UFUNCTION 有什么区别？
 
@@ -72,7 +72,7 @@ UE 对 UObject 采用标记—清除：从 RootSet 出发，沿反射数据（UP
 - 大容器（如 `TMap<int32, UObject*>` 加 UPROPERTY）会把所有元素纳入扫描，对象数量直接放大 GC 耗时；控制 UObject 数量、使用 Cluster 合并销毁是常见优化。
 - 非 UObject 的 C++ 对象不走这套 GC，用 UE 智能指针或标准智能指针管理（见第 5、6 题）。
 
-与 C# 的对比：C# 是分代压缩式 GC 且托管一切对象；UE 的 GC 只管 UObject、不移动对象、靠开发者声明引用。参考：[UE 对象处理](https://docs.unrealengine.com/5.0/en-US/unreal-object-handling/)。
+与 C# 的对比：C# 是分代压缩式 GC 且托管一切对象；UE 的 GC 只管 UObject、不移动对象、靠开发者声明引用。
 
 ## 二、内存与智能指针
 
